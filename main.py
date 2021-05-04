@@ -8,12 +8,16 @@
 ####################################################
 
 import sys # Library for INT_MAX
+import networkx as nx
+from matplotlib import pyplot, patches
+import numpy as np
 
 class Graph():
 
 	def __init__(self, vertices):
 		self.V = vertices
 		self.graph = [[0 for column in range(vertices)] for row in range(vertices)]
+		self.parent = None
 
 	# A utility function to print the constructed MST stored in parent[]
 	def printMST(self, parent):
@@ -66,14 +70,77 @@ class Graph():
 				if self.graph[u][v] > 0 and mstSet[v] == False and key[v] > self.graph[u][v]:
 						key[v] = self.graph[u][v]
 						parent[v] = u
-
+		
+		self.parent = parent
 		self.printMST(parent)
 
-g = Graph(5)
-g.graph = [ [0, 2, 0, 6, 0],
-			[2, 0, 3, 8, 5],
-			[0, 3, 0, 0, 7],
-			[6, 8, 0, 0, 9],
-			[0, 5, 7, 9, 0]]
+	def make_label_dictionary(self):
+		labels = {}
+		for col in range(0, len(self.graph)):
+			for row in range(0, len(self.graph[0])):
+				if (row, col) not in labels or (col, row) not in labels:
+					edge = (row, col)
+					if self.graph[col][row] != 0:
+						labels[edge] = self.graph[col][row]
+		
+		return labels
+	
+	# def assign_colors_to_MST(self):
+	# 	colors = []
+		
+	# 	for col in range(0, len(self.graph)):
+	# 		for row in range(0, len(self.graph[0])):
+	# 			if self.parent[col] == row:
+	# 				colors.append('r')
+	# 			else:
+	# 				colors.append('b')
+	# 	print(len(colors))
+	# 	print(colors)
+	# 	return colors
+	
+	def draw_adjacency_matrix(self):
+		"""
+		- G is a netorkx graph
+		- node_order (optional) is a list of nodes, where each node in G
+			appears exactly once
+		- partitions is a list of node lists, where each node in G appears
+			in exactly one node list
+		- colors is a list of strings indicating what color each
+			partition should be
+		If partitions is specified, the same number of colors needs to be
+		specified.
+		"""
+		G = nx.from_numpy_matrix(np.array(self.graph))  
+		pos = nx.spring_layout(G)
+		nx.draw(G, pos, with_labels=True)
+		nx.draw_networkx_edge_labels(G, pos, edge_labels=self.make_label_dictionary())
+	
+	def assign_colors_to_MST(self, edges):
+		colors = []
+		for u,v in edges:
+			if self.parent[v] == u:
+				colors.append('r')
+			else:
+				colors.append('black')
+		print("colors:", colors)
+		return colors
 
-g.primMST()
+	def draw_MST(self):
+		"""
+		- G is a netorkx graph
+		- node_order (optional) is a list of nodes, where each node in G
+			appears exactly once
+		- partitions is a list of node lists, where each node in G appears
+			in exactly one node list
+		- colors is a list of strings indicating what color each
+			partition should be
+		If partitions is specified, the same number of colors needs to be
+		specified.
+		"""
+		G = nx.from_numpy_matrix(np.array(self.graph))  
+		edges = G.edges()
+		print("edges:", edges)
+		colors = self.assign_colors_to_MST(edges)
+		pos = nx.spring_layout(G)
+		nx.draw(G, pos, edges=edges, edge_color=colors, with_labels=True)
+		nx.draw_networkx_edge_labels(G, pos, edge_labels=self.make_label_dictionary())
