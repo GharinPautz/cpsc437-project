@@ -45,7 +45,7 @@ class Graph():
 	def input_edges(self):
 		"""Inputs the edges into the graph using user input.
 		"""
-		print("How many edges (0 -", self.V * 4, "): ")
+		print("How many edges (0 -", self.V * self.V - 1, "): ")
 		num = enter_int()
 		for _ in range(num):
 			print("Start vertex: ")
