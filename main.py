@@ -12,22 +12,77 @@ import networkx as nx
 from matplotlib import pyplot, patches
 import numpy as np
 
-class Graph():
+def enter_int():
+	"""Helper function for getting user input
+	"""
+	num = input()
+	return int(num)
 
-	def __init__(self, vertices):
-		self.V = vertices
-		self.graph = [[0 for column in range(vertices)] for row in range(vertices)]
+def get_num_vertices():
+	"""Gets user input for number of vertices in graph
+	"""
+	print("Enter how many vertices: ")
+	num = enter_int()
+	return num
+
+class Graph():
+	"""Graph class that is used to assign vertices and edges.
+	"""
+
+	def __init__(self):
+		"""Initializer for Graph.
+
+		Parameters:
+			V (num): number of vertices in graph
+			graph (list of list of num): Adjacency matrix representation of graph
+			parent (list of num): list of length V that stores what vertex each vertex 
+				in the MST is connected to.
+		"""
+		self.V = get_num_vertices()
+		self.graph = [[0 for column in range(self.V)] for row in range(self.V)]
 		self.parent = None
+	
+	def input_edges(self):
+		"""Inputs the edges into the graph using user input.
+		"""
+		print("How many edges (0 -", self.V * 4, "): ")
+		num = enter_int()
+		for _ in range(num):
+			print("Start vertex: ")
+			u = enter_int()
+			print("End vertex: ")
+			v = enter_int()
+			print ("Weight: ")
+			weight = enter_int()
+			self.set_edge(u, v, weight)
+
+	def set_edge(self, u, v, weight):
+		"""Sets the edge in the graph given the input
+		
+		Parameters:
+			u (num): The start vertex
+			v (num): The end vertex
+			weight (num): The weight of the edge
+		"""
+		self.graph[u][v] = weight
+		self.graph[v][u] = weight
 
 	# A utility function to print the constructed MST stored in parent[]
 	def printMST(self, parent):
+		"""Displays the edges and weights in MST to console
+		
+		Parameters:
+			parent (list of num): list of length V that stores what vertex each vertex 
+				in the MST is connected to.
+		"""
 		print("Edge \tWeight")
 		for i in range(1, self.V):
 			print(parent[i], "-", i, "\t", self.graph[i][ parent[i] ])
 
-	# A utility function to find the vertex with minimum distance value, from the set of vertices
-	# not yet included in shortest path tree
 	def minKey(self, key, mstSet):
+		"""A utility function to find the vertex with minimum distance value, from the set of vertices
+			 not yet included in shortest path tree
+		"""
 
 		# Initilaize min value
 		min = sys.maxsize
@@ -41,6 +96,8 @@ class Graph():
 
 	# Function to construct and print MST for a graph represented using adjacency matrix representation
 	def primMST(self):
+		"""Prim's algorithm for finding minimum spanning tree
+		"""
 
 		# Key values used to pick minimum weight edge in cut
 		key = [sys.maxsize] * self.V
@@ -75,6 +132,8 @@ class Graph():
 		self.printMST(parent)
 
 	def make_label_dictionary(self):
+		"""Makes the dictionary used to assign labels to edges
+		"""
 		labels = {}
 		for col in range(0, len(self.graph)):
 			for row in range(0, len(self.graph[0])):
@@ -85,30 +144,8 @@ class Graph():
 		
 		return labels
 	
-	# def assign_colors_to_MST(self):
-	# 	colors = []
-		
-	# 	for col in range(0, len(self.graph)):
-	# 		for row in range(0, len(self.graph[0])):
-	# 			if self.parent[col] == row:
-	# 				colors.append('r')
-	# 			else:
-	# 				colors.append('b')
-	# 	print(len(colors))
-	# 	print(colors)
-	# 	return colors
-	
-	def draw_adjacency_matrix(self):
-		"""
-		- G is a netorkx graph
-		- node_order (optional) is a list of nodes, where each node in G
-			appears exactly once
-		- partitions is a list of node lists, where each node in G appears
-			in exactly one node list
-		- colors is a list of strings indicating what color each
-			partition should be
-		If partitions is specified, the same number of colors needs to be
-		specified.
+	def draw_network(self):
+		"""Draws plain graph with labels, no colored edges
 		"""
 		G = nx.from_numpy_matrix(np.array(self.graph))  
 		pos = nx.spring_layout(G)
@@ -116,31 +153,29 @@ class Graph():
 		nx.draw_networkx_edge_labels(G, pos, edge_labels=self.make_label_dictionary())
 	
 	def assign_colors_to_MST(self, edges):
+		"""Assigns colors and weights to the edges in the graph. If an edge is part of the MST,
+		then it's color is red and weight is thicker.
+		"""
 		colors = []
+		weights = []
 		for u,v in edges:
 			if self.parent[v] == u:
 				colors.append('r')
+				weights.append(6)
 			else:
 				colors.append('black')
-		print("colors:", colors)
-		return colors
+				weights.append(1)
+		return colors, weights
 
-	def draw_MST(self):
+	def prims_MST(self):
+		"""Calculates minimum spanning tree using Prim's algorithm and stores parent in 
+		Graph object. Then visualizes the minimum spanning tree.
 		"""
-		- G is a netorkx graph
-		- node_order (optional) is a list of nodes, where each node in G
-			appears exactly once
-		- partitions is a list of node lists, where each node in G appears
-			in exactly one node list
-		- colors is a list of strings indicating what color each
-			partition should be
-		If partitions is specified, the same number of colors needs to be
-		specified.
-		"""
+		self.primMST()
 		G = nx.from_numpy_matrix(np.array(self.graph))  
 		edges = G.edges()
-		print("edges:", edges)
-		colors = self.assign_colors_to_MST(edges)
+		# print("edges:", edges)
+		colors, weights = self.assign_colors_to_MST(edges)
 		pos = nx.spring_layout(G)
-		nx.draw(G, pos, edges=edges, edge_color=colors, with_labels=True)
+		nx.draw(G, pos, edges=edges, edge_color=colors, width=weights, with_labels=True)
 		nx.draw_networkx_edge_labels(G, pos, edge_labels=self.make_label_dictionary())
